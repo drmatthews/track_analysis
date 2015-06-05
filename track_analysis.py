@@ -320,7 +320,8 @@ def fit_smss(gamma, mu, r2=0.8):
         good = True
     return (slope,good)
 
-def imss(traj, mpp, fps, max_lagtime=100):
+def imss(traj, mpp, fps, max_lagtime=100, powerfit=True, clip=None,\
+         r2=0.8):
     smss = []
     D = []
     good = []
@@ -332,7 +333,8 @@ def imss(traj, mpp, fps, max_lagtime=100):
             # get all the moments including the msd (mu=2)
             moment = mss(ptraj, mpp, fps, mu, max_lagtime, False)
             moment.set_index('lagt',inplace=True)
-            vals,fits = linear_regress(moment['moment'],log=True)
+            vals,fits = linear_regress(moment['moment'],log=powerfit,\
+                                      clip=clip,r2=r2)
             gamma[mu] = vals['slope'].values[0]
             if mu == 2:
                 D.append(0.25*vals['intercept'].values[0])
@@ -349,7 +351,7 @@ def imss(traj, mpp, fps, max_lagtime=100):
     mss_data['good'] = good   
     return mss_data   
 
-def smss(ptraj, mpp, fps, max_lagtime):
+def smss(ptraj, mpp, fps, max_lagtime, powerfit, clip, r2):
     all_mu = np.arange(7)
     gamma = np.zeros(7)
     for mu in all_mu:
