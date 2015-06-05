@@ -25,6 +25,10 @@ class ImportTracks:
             self.software = 'palmtracer'
             self.ntracks = None
             self.trajectories = self.palmtracer_tracks()
+        elif 'simulated' in source:
+            self.software = 'track_simulation'
+            self.ntracks = None
+            self.trajectories = self.simulated_tracks()            
         
     def get_root(self):
         return ElementTree(file=self.path).getroot()
@@ -67,7 +71,7 @@ class ImportTracks:
                        'good','intensity','extra1','extra2','t']
             return data
         except:
-            print 'there was a problem parsing localisation data'
+            print 'there was a problem parsing the data'
             return None
         
     def palmtracer_tracks(self):
@@ -83,9 +87,22 @@ class ImportTracks:
                        'good','intensity']
             return data
         except:
-            print 'there was a problem parsing localisation data'
+            print 'there was a problem parsing the data'
             return None
 
+    def simulated_tracks(self):
+        num_lines = sum(1 for line in open(self.path))
+        try:
+            with open(self.path) as t_in:
+                data = pd.read_csv(t_in,header=1,\
+                                    sep=',',engine='c',\
+                                    skiprows=range(num_lines-50,num_lines),\
+                                    index_col=False,low_memory=False)  
+            data.columns = ['particle','frame','x','y']
+            return data
+        except:
+            print 'there was a problem parsing the data'
+            return None
 
 """
     Borrowed from trackpy - msd,imsd,emsd and fit_powerlaw

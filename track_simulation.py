@@ -3,11 +3,10 @@ import numpy as np
 import pandas as pd
 from track_analysis import brownian
 
-def export(tracks):
+def export(tracks,filename):
 
     tracks_df = pd.concat(tracks).reset_index(drop=True)
-    file_name = 'simulated_tracks.csv' 
-    with file(file_name, 'w') as outfile:
+    with file(filename, 'w') as outfile:
         tracks_df.to_csv(outfile,sep=',',float_format='%8.2f',index=False,\
                          encoding='utf-8')     
 
