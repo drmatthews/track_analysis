@@ -8,7 +8,7 @@ def export(tracks):
     tracks_df = pd.concat(tracks).reset_index(drop=True)
     file_name = 'simulated_tracks.csv' 
     with file(file_name, 'w') as outfile:
-        tracks_df.to_csv(outfile,sep='\t',float_format='%8.2f',index=False,\
+        tracks_df.to_csv(outfile,sep=',',float_format='%8.2f',index=False,\
                          encoding='utf-8')     
 
 def circ_rand(n,R):
