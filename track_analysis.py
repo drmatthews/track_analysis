@@ -54,7 +54,7 @@ class ImportTracks:
                 
         return pd.concat(df_list).reset_index(drop=True)
     
-    def palmtracer_tracks(self):
+    def kunle_palmtracer_tracks(self):
         num_lines = sum(1 for line in open(self.path))
         try:
             with open(self.path) as t_in:
@@ -65,6 +65,23 @@ class ImportTracks:
 
             data.columns = ['particle','frame','x','y',\
                        'good','intensity','extra1','extra2','t']
+            return data
+        except:
+            print 'there was a problem parsing localisation data'
+            return None
+        
+    def palmtracer_tracks(self):
+        num_lines = sum(1 for line in open(self.path))
+        try:
+            with open(self.path) as t_in:
+                data = pd.read_csv(t_in,header=None,\
+                                   sep='\t',engine='c',\
+                                   skiprows=range(num_lines-50,num_lines),\
+                                   index_col=False,low_memory=False)  
+
+            data.columns = ['particle','frame','x','y',\
+                       'good','intensity']
+            return data
         except:
             print 'there was a problem parsing localisation data'
             return None
@@ -124,7 +141,7 @@ def linear_regress(data, log=True, clip=None, r2=0.8, **kwargs):
     return (values,fits)
 
 def mss(traj, mpp, fps, mu, max_lagtime=100, detail=False):
-    """Compute the mean displacement and mean squared displacement of one
+    """Compute the displacement and moment of one
     trajectory over a range of time intervals.
 
     Parameters
@@ -139,7 +156,7 @@ def mss(traj, mpp, fps, mu, max_lagtime=100, detail=False):
 
     Returns
     -------
-    DataFrame([<x>, <y>, <x^2>, <y^2>, msd], index=t)
+    DataFrame([<x>, <y>, <x^mu>, <y^mu>, msd], index=t)
 
     If detail is True, the DataFrame also contains a column N,
     the estimated number of statistically independent measurements
@@ -169,6 +186,8 @@ def mss(traj, mpp, fps, mu, max_lagtime=100, detail=False):
     # Estimated statistically independent measurements = 2N/t
     if detail:
         results['N'] = 2*disp.icol(0).count(level=0).div(Series(lagtimes))
+    if isinstance(fps,int):
+        fps = float(fps)
     results['lagt'] = results.index.values/fps
     return results
 
@@ -342,6 +361,7 @@ def smss(ptraj, mpp, fps, max_lagtime):
         if mu == 2:
             D = 0.25*vals['intercept'].values[0]
     # curve fit the MSS
+    print gamma
     return (gamma,fit_smss(gamma,all_mu),D)
 
 def segment(trajs,trackid,fmin=0,fmax=100):
@@ -377,15 +397,20 @@ def track_lengths(trajs):
     return lengths      
 
 def diffusion_coefficients(results):
-    return [results[i][2] \
+    if isinstance(results,list):
+        return [results[i][2] \
             for i in range(len(results)) \
             if results[i][1][1]]
+    else:
+        return results['D2'].values
     
 def smss_values(results):
-    return [results[j][1][0] \
-            for j in range(len(results)) \
-            if results[j][1][1]]
-    
+    if isinstance(results,list):
+        return [results[j][1][0] \
+                for j in range(len(results)) \
+                if results[j][1][1]]
+    else:
+        return results['smss'].values
 """
 from the scipy cookbook
 """
